@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Parking Simulation Dashboard</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-main: #2b2d42;
+            --text-sub: #8d99ae;
+            --danger: #ef233c;
+            --success: #2ec4b6;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding-bottom: 50px;
+        }
+
+        /* HEADER */
+        .navbar {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 20px;
+            color: white;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+            margin-bottom: 40px;
+        }
+        .navbar h1 { font-weight: 600; letter-spacing: 1px; }
+        .navbar p { opacity: 0.9; font-weight: 300; margin-top: 5px; }
+
+        /* CONTAINER */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* CARD STYLE */
+        .card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            transition: transform 0.2s;
+        }
+
+        /* INPUT SECTION */
+        .control-panel {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            border-left: 5px solid var(--primary);
+        }
+        
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-grow: 1;
+        }
+
+        input[type="number"] {
+            padding: 12px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            width: 120px;
+            outline: none;
+            transition: 0.3s;
+            font-family: 'Poppins', sans-serif;
+        }
+        input[type="number"]:focus { border-color: var(--primary); }
+
+        .btn-run {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 4px 10px rgba(67, 97, 238, 0.3);
+            transition: 0.3s;
+        }
+        .btn-run:hover { transform: translateY(-2px); background-color: var(--secondary); }
+
+        /* LOADING SPINNER */
+        #loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        .spinner {
+            width: 40px; height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* STATS GRID */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* 2 Columns */
+            gap: 20px;
+        }
+
+        .stat-card {
+            border-radius: 12px;
+            padding: 20px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card.manual { background: linear-gradient(135deg, #ff9966, #ff5e62); box-shadow: 0 8px 20px rgba(255, 94, 98, 0.3); }
+        .stat-card.smart { background: linear-gradient(135deg, #56ab2f, #a8e063); box-shadow: 0 8px 20px rgba(86, 171, 47, 0.3); }
+
+        .stat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .stat-header h3 { font-size: 1.2rem; }
+        .stat-header i { font-size: 1.5rem; opacity: 0.8; }
+
+        .main-value { font-size: 2.5rem; font-weight: 700; margin-bottom: 5px; }
+        .sub-value { font-size: 0.9rem; opacity: 0.9; }
+
+        /* CHART SECTION */
+        .chart-container {
+            text-align: center;
+            padding: 10px;
+        }
+        .chart-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+
+        /* INFO BADGE */
+        .badge-info {
+            background-color: #e7f5ff;
+            color: var(--primary);
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            display: inline-block;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <h1><i class="fas fa-car-side"></i> Smart Parking Simulator</h1>
+        <p>Analisis Efisiensi Sistem Parkir Berbasis Event Simulation</p>
+    </nav>
+
+    <div class="container">
+        
+        <div class="card control-panel">
+            <div class="input-group">
+                <div>
+                    <h3 style="margin-bottom: 5px;">Konfigurasi Simulasi</h3>
+                    <p style="color: var(--text-sub); font-size: 0.9rem;">Tentukan jumlah slot parkir (Kapasitas)</p>
+                </div>
+            </div>
+            
+            <form action="/run" method="get" onsubmit="showLoading()">
+                <div style="display: flex; gap: 10px;">
+                    <input type="number" name="kapasitas" value="{{ result.kapasitas_dipakai if result else 147 }}" min="10" required>
+                    <button type="submit" class="btn-run">
+                        <i class="fas fa-play"></i> Mulai Simulasi
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div id="loading">
+            <div class="spinner"></div>
+            <p>Sedang mensimulasikan ribuan kendaraan... Mohon tunggu.</p>
+        </div>
+
+        {% if result %}
+        <div id="results">
+            <div style="text-align: center;">
+                <span class="badge-info">
+                    Hasil Simulasi Kapasitas: {{ result.kapasitas_dipakai }} Slot | Total Mobil: {{ result.total_cars }}
+                </span>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card manual">
+                    <div class="stat-header">
+                        <h3>MANUAL SYSTEM</h3>
+                        <i class="fas fa-ticket-alt"></i>
+                    </div>
+                    <div class="main-value">{{ result.manual_avg_search }} <span style="font-size: 1rem;">menit</span></div>
+                    <p class="sub-value">Rata-rata Waktu Mencari Parkir</p>
+                    <hr style="border-color: rgba(255,255,255,0.3); margin: 10px 0;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span><i class="fas fa-clock"></i> Antrean Gerbang</span>
+                        <strong>{{ result.manual_avg_queue }} menit</strong>
+                    </div>
+                </div>
+
+                <div class="stat-card smart">
+                    <div class="stat-header">
+                        <h3>SMART SYSTEM</h3>
+                        <i class="fas fa-wifi"></i>
+                    </div>
+                    <div class="main-value">{{ result.smart_avg_search }} <span style="font-size: 1rem;">menit</span></div>
+                    <p class="sub-value">Rata-rata Waktu Mencari Parkir</p>
+                    <hr style="border-color: rgba(255,255,255,0.3); margin: 10px 0;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span><i class="fas fa-clock"></i> Antrean Gerbang</span>
+                        <strong>{{ result.smart_avg_queue }} menit</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 30px;">
+                <h3 style="margin-bottom: 20px; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px;">
+                    <i class="fas fa-chart-bar" style="color: var(--primary);"></i> Visualisasi Perbandingan
+                </h3>
+                <div class="chart-container">
+                    <img src="data:image/png;base64,{{ plot_url }}" alt="Grafik Hasil Simulasi">
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <script>
+        function showLoading() {
+            // Sembunyikan hasil lama jika ada
+            const resultsDiv = document.getElementById('results');
+            if (resultsDiv) resultsDiv.style.display = 'none';
+            
+            // Tampilkan loading
+            document.getElementById('loading').style.display = 'block';
+        }
+    </script>
+
+</body>
+</html>
